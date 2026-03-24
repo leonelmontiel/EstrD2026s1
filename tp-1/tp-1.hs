@@ -307,7 +307,7 @@ estaVacia :: [a]-> Bool
 De nida en Haskell como null.-}
 --Precondición: no tiene
 estaVacia [] = True
-estaVacia _ = True
+estaVacia _ = False
 
 elPrimero :: [a]-> a
 {-Dada una lista devuelve su primer elemento.
