@@ -171,3 +171,58 @@ sinLosPrimeros n (_:xs) =
     if n<0
     then error "n no puede ser negativo"
     else sinLosPrimeros (n-1) xs
+
+{-3. Registros
+1. De nir el tipo de dato Persona, como un nombre y la edad de la persona. Realizar las
+siguientes funciones:-}
+data Persona = P String Int deriving Show
+--               nombre edad
+p1 = P "Leo" 30
+p2 = P "Jorge" 63
+p3 = P "Mariana" 50
+
+mayoresA :: Int-> [Persona]-> [Persona]
+{-Dados una edad y una lista de personas devuelve a las personas mayores a esa edad.
+Precondición: n no puede ser negativo-}
+mayoresA _ [] = []
+mayoresA n (p:ps) = 
+    if edad p > (verificaSigno n)
+    then p : mayoresA n ps
+    else mayoresA n ps
+
+edad::Persona->Int
+{-Dada una persona retorna su edad.
+Precondición: ninguna-}
+edad (P _ e) = e
+
+verificaSigno::Int->Int
+{- Dado un número lo retorna si es positivo, sino lanza error.
+Precondición: n no puede ser negativo-}
+verificaSigno n =
+    if n<0
+    then error "n no puede ser negativo"
+    else n
+
+promedioEdad :: [Persona]-> Int
+{-Dada una lista de personas devuelve el promedio de edad entre esas personas. Precon
+dición: la lista al menos posee una persona.
+Precondición: la lista de personas no puede estar vacía-}
+promedioEdad [] = error "La lista de personas no puede estar vacía"
+promedioEdad ps = div (sumatoria (edades ps)) (longitud ps)
+
+edades::[Persona]->[Int]
+{-Dada una lista de personas retorna la lista con sus respectivas edades
+Precondición: ninguna-}
+edades [] = []
+edades (p:ps) = edad p : edades ps
+
+elMasViejo :: [Persona]-> Persona
+{-Dada una lista de personas devuelve la persona más vieja de la lista. Precondición: la
+lista al menos posee una persona.
+Precondición: la lista al menos posee una persona-}
+elMasViejo [] = error "la lista al menos posee una persona"
+elMasViejo [p] = p
+elMasViejo (p:ps) = 
+    if edad p > edad(elMasViejo ps)
+    then p
+    else elMasViejo ps
