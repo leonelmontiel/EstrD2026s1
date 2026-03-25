@@ -117,3 +117,57 @@ Precondición: la lista no puede estar vacía-}
 elMinimo [] = error "La lista no puede estar vacía"
 elMinimo [x] = x
 elMinimo (x:xs) = if x < elMinimo xs then x else elMinimo xs
+
+{-2. Recursión sobre números
+De na las siguientes funciones utilizando recursión sobre números enteros, salvo que se indique
+lo contrario:-}
+
+factorial :: Int-> Int
+{-Dado un número n se devuelve la multiplicación de este número y todos sus anteriores hasta
+llegar a 0. Si n es 0 devuelve 1. La función es parcial si n es negativo.
+Precondición: n no puede ser negativo-}
+factorial 0 = 1
+factorial n = 
+    if n<0
+    then error "n no puede ser negativo"
+    else n * factorial (n-1)
+
+cuentaRegresiva :: Int-> [Int]
+{-Dado un número n devuelve una lista cuyos elementos sean los números comprendidos entre
+n y 1 (incluidos). Si el número es inferior a 1, devuelve la lista vacía.
+Precondición: ninguna-}
+cuentaRegresiva n = 
+    if n<1
+    then []
+    else n : cuentaRegresiva (n-1)
+
+repetir :: Int-> a-> [a]
+{-Dado un número n y un elemento e devuelve una lista en la que el elemento e repite n veces.
+Precondición: n no puede ser negativo-}
+repetir 0 e = []
+repetir n e =
+    if n<0
+    then error "n no puede ser negativo"
+    else e : repetir (n-1) e
+
+losPrimeros :: Int-> [a]-> [a]
+{-Dados un número n y una lista xs, devuelve una lista con los n primeros elementos de xs.
+Si la lista es vacía, devuelve una lista vacía.
+Precondición: n no puede ser negativo-}
+losPrimeros 0 xs = []
+losPrimeros _ [] = []
+losPrimeros n (x:xs) = 
+    if n<0
+    then error "n no puede ser negativo"
+    else x : losPrimeros (n-1) xs
+
+sinLosPrimeros :: Int-> [a]-> [a]
+{-Dados un número n y una lista xs, devuelve una lista sin los primeros n elementos de lista
+recibida. Si n es cero, devuelve la lista completa.
+Precondición: n no puede ser negativo-}
+sinLosPrimeros 0 xs = xs
+sinLosPrimeros _ [] = []
+sinLosPrimeros n (_:xs) =
+    if n<0
+    then error "n no puede ser negativo"
+    else sinLosPrimeros (n-1) xs
