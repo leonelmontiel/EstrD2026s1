@@ -311,3 +311,50 @@ esDeIgualTipo Fuego Fuego = True
 esDeIgualTipo Planta Planta = True
 esDeIgualTipo _ _ = False
 ----------
+
+cuantosDeTipo_De_LeGananATodosLosDe_:: TipoDePokemon-> Entrenador-> Entrenador-> Int
+{-Dados dos entrenadores, indica la cantidad de Pokemon de cierto tipo pertenecientes al
+primer entrenador, que le ganarían a todos los Pokemon del segundo entrenador.
+Precondición: -}
+cuantosDeTipo_De_LeGananATodosLosDe_ t e1 e2 = cantPokemonesVencedores (pokemonesDeTipoDel t e1) (pokemonesDe e2)
+
+pokemonesDeTipoDel :: TipoDePokemon -> Entrenador -> [Pokemon]
+pokemonesDeTipoDel  t (ConsEntrenador _ pks) = pokemonesDeTipo t pks
+
+pokemonesDeTipo :: TipoDePokemon -> [Pokemon] -> [Pokemon]
+pokemonesDeTipo _ [] = []
+pokemonesDeTipo t (pk:pks) =
+    if esDeIgualTipo t (tipoDe pk)
+    then pk : pokemonesDeTipo t pks
+    else pokemonesDeTipo t pks
+
+tipoDe :: Pokemon -> TipoDePokemon
+tipoDe (ConsPokemon t _) = t
+
+cantPokemonesVencedores :: [Pokemon] -> [Pokemon] -> Int
+{- Dadas dos listas de Pokemon, retorna una nueva lista solo con los Pokemon 
+de la primera que superan a todos los pertenecientes a la segunda.
+Precondición: ninguna. -}
+cantPokemonesVencedores [] _ = 0
+cantPokemonesVencedores pks [] = longitud pks
+cantPokemonesVencedores pk1s pk2s = if superaATodos (head pk1s) pk2s then longitud pk1s else 0
+
+superaATodos :: Pokemon -> [Pokemon] -> Bool
+{- Dado un pokemón y una lista de pokemones, indica si ese pokemon supera a todos los integrados en la lista.
+Precondición: ninguna. -}
+superaATodos _ [] = True
+superaATodos pk1 (pk2:pk2s) = superaA pk1 pk2 && superaATodos pk1 pk2s
+
+superaA :: Pokemon-> Pokemon-> Bool
+{-Dados dos Pokémon indica si el primero, en base al tipo, es superior al segundo. Agua
+supera a fuego, fuego a planta y planta a agua. Y cualquier otro caso es falso.-}
+--Precondición: no tiene
+superaA (ConsPokemon t1 _) (ConsPokemon t2 _) = primerTipoSuperaAlSegundo t1 t2
+
+primerTipoSuperaAlSegundo::TipoDePokemon->TipoDePokemon->Bool
+--Indica si el primer tipo de pokemon supera al segundo tipo.
+--Precondición: no tiene
+primerTipoSuperaAlSegundo Agua Fuego = True
+primerTipoSuperaAlSegundo Fuego Planta = True
+primerTipoSuperaAlSegundo Planta Agua = True
+primerTipoSuperaAlSegundo _ _ = False
