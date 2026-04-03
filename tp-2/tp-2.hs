@@ -358,3 +358,105 @@ primerTipoSuperaAlSegundo Agua Fuego = True
 primerTipoSuperaAlSegundo Fuego Planta = True
 primerTipoSuperaAlSegundo Planta Agua = True
 primerTipoSuperaAlSegundo _ _ = False
+----------
+
+esMaestroPokemon :: Entrenador-> Bool
+{- Dado un entrenador, devuelve True si posee al menos un Pokémon de cada tipo posible.
+Precondición: ninguna. -}
+esMaestroPokemon (ConsEntrenador _ pks) = alMenosUnoDe Agua pks && alMenosUnoDe Fuego pks && alMenosUnoDe Planta pks
+
+alMenosUnoDe :: TipoDePokemon -> [Pokemon] -> Bool
+{- Dado un TipoDePokemon y una lista de Pokemon, indica si existe en ella al menos un Pokemon del tipo dado.
+Precondición: ninguna. -}
+alMenosUnoDe _ [] = False
+alMenosUnoDe t (pk:pks) = esDeIgualTipo t (tipoDe pk) || alMenosUnoDe t pks
+----------
+
+{- 3. El tipo de dato Rol representa los roles (desarollo o management) de empleados IT dentro
+de una empresa de software, junto al proyecto en el que se encuentran. Así, una empresa es
+una lista de personas con diferente rol. La definición es la siguiente: -}
+data Seniority = Junior | SemiSenior | Senior
+data Proyecto = ConsProyecto String deriving Show
+py0 = ConsProyecto "Preaprobados Empresa"
+py1 = ConsProyecto "Preaprobados Persona Fisica"
+py2 = ConsProyecto "PPF"
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto
+r0 = Developer Junior py0
+r1 = Developer SemiSenior py0
+r2 = Developer Junior py1
+r3 = Developer Senior py1
+r4 = Developer Senior py2
+r5 = r4
+data Empresa = ConsEmpresa [Rol]
+em0 = ConsEmpresa []
+em1 = ConsEmpresa [r0]
+em2 = ConsEmpresa [r0, r1]
+em3 = ConsEmpresa [r1, r2]
+em4 = ConsEmpresa [r3, r4, r1]
+em5 = ConsEmpresa [r3, r4, r5]
+
+-- Definir las siguientes funciones sobre el tipo Empresa:
+proyectos :: Empresa-> [Proyecto]
+{- Dada una empresa denota la lista de proyectos en los que trabaja, sin elementos repetidos.
+Precondición: ninguna. -}
+proyectos (ConsEmpresa roles) = proyectosDeLos roles
+
+proyectosDeLos :: [Rol] -> [Proyecto]
+{- Dada una lista de Rol, retorna una lista con los proyectos sin repetir de dichos roles.
+Precondición: ninguna. -}
+proyectosDeLos [] = []
+proyectosDeLos (r:rs) = agregarProyectoSiNoExiste (proyectoDe r) (proyectosDeLos rs)
+
+agregarProyectoSiNoExiste :: Proyecto -> [Proyecto] -> [Proyecto]
+{- Dado un Proyecto y una lista de Proyecto, retorna la lista resultante con el Pryecto incluído solo si no existiese en dicha lista.
+Precondición: ninguna. -}
+agregarProyectoSiNoExiste p ps = if existeProyectoEn p ps then ps else p : ps
+
+existeProyectoEn :: Proyecto -> [Proyecto] -> Bool
+existeProyectoEn p ps = pertenece (nombreProyecto p) (nombresProyectos ps)
+
+proyectoDe :: Rol -> Proyecto
+{- Dado un Rol, retorna su respectivo Proyecto.
+Precondición: ninguna. -}
+proyectoDe (Developer _ p) = p
+
+nombreProyecto :: Proyecto -> String
+{- Dado un Proyecto, retorna su respectivo nombre.
+Precondición: ninguna.  -}
+nombreProyecto (ConsProyecto n) = n
+
+nombresProyectos :: [Proyecto] -> [String]
+{- Dada una lista de Proyecto, retorna una lista con los nombres de dichos Proyectos.
+Precondición: ninguna. -}
+nombresProyectos [] = []
+nombresProyectos (p:ps) = nombreProyecto p : nombresProyectos ps
+----------
+
+losDevSenior :: Empresa-> [Proyecto]-> Int
+{- Dada una empresa indica la cantidad de desarrolladores senior que posee, que pertecen
+además a los proyectos dados por parámetro. 
+Precondición: ninguna. -}
+losDevSenior (ConsEmpresa rs) pys = longitud (devsSeniorDe rs pys)
+
+devsSeniorDe :: [Rol] -> [Proyecto] -> [Rol]
+{- Dada una lista de Rol y una lista de Proyecto, retorna otra lista de Rol pero solo de desarrolladores Senior.
+Precondición: ninguna. -}
+devsSeniorDe [] _ = []
+devsSeniorDe rs [] = rs
+devsSeniorDe (r:rs) pys =
+    if esDevTipo r Senior && existeProyectoEn (proyectoDe r) pys
+    then r : devsSeniorDe rs pys
+    else devsSeniorDe rs pys
+
+esDevTipo :: Rol -> Seniority -> Bool
+{- Dado un Rol y un Seniority, indica si ese Rol tiene el Seniority dado.
+Precondición: ninguna. -}
+esDevTipo (Developer srol _) s = esMismoSeniority srol s 
+
+esMismoSeniority :: Seniority -> Seniority -> Bool
+{- Dados dos tipo de Seniority, indica si son del mismo tipo.
+Precondición: ninguna. -}
+esMismoSeniority Junior Junior = True
+esMismoSeniority SemiSenior SemiSenior = True
+esMismoSeniority Senior Senior = True
+esMismoSeniority _ _ = False
