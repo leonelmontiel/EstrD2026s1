@@ -246,12 +246,12 @@ elMasViejo :: [Persona]-> Persona
 {-Dada una lista de personas devuelve la persona más vieja de la lista. Precondición: la
 lista al menos posee una persona.
 Precondición: la lista al menos posee una persona-}
-elMasViejo [] = error "la lista al menos posee una persona"
+elMasViejo []  = error "la lista al menos posee una persona"
 elMasViejo [p] = p
-elMasViejo (p:ps) = 
-    if edad p > edad(elMasViejo ps)
-    then p
-    else elMasViejo ps
+elMasViejo (p:ps) = personaMasVieja p (elMasViejo ps)
+
+personaMasVieja :: Persona -> Persona -> Persona
+personaMasVieja p1 p2 = if edad p1 > edad p2 then p1 else p2
 ----------
 
 {-2. Modi caremos la representación de Entreador y Pokemon de la práctica anterior de la si
@@ -336,8 +336,10 @@ cantPokemonesVencedores :: [Pokemon] -> [Pokemon] -> Int
 de la primera que superan a todos los pertenecientes a la segunda.
 Precondición: ninguna. -}
 cantPokemonesVencedores [] _ = 0
-cantPokemonesVencedores pks [] = longitud pks
-cantPokemonesVencedores pk1s pk2s = if superaATodos (head pk1s) pk2s then longitud pk1s else 0
+cantPokemonesVencedores (p:ps) oponentes = 
+    if superaATodos p oponentes
+       then 1 + cantPokemonesVencedores ps oponentes
+       else cantPokemonesVencedores ps oponentes
 
 superaATodos :: Pokemon -> [Pokemon] -> Bool
 {- Dado un pokemón y una lista de pokemones, indica si ese pokemon supera a todos los integrados en la lista.
@@ -419,6 +421,7 @@ proyectoDe :: Rol -> Proyecto
 {- Dado un Rol, retorna su respectivo Proyecto.
 Precondición: ninguna. -}
 proyectoDe (Developer _ p) = p
+proyectoDe (Management _ p) = p
 
 nombreProyecto :: Proyecto -> String
 {- Dado un Proyecto, retorna su respectivo nombre.
@@ -442,7 +445,6 @@ devsSeniorDe :: [Rol] -> [Proyecto] -> [Rol]
 {- Dada una lista de Rol y una lista de Proyecto, retorna otra lista de Rol pero solo de desarrolladores Senior.
 Precondición: ninguna. -}
 devsSeniorDe [] _ = []
-devsSeniorDe rs [] = rs
 devsSeniorDe (r:rs) pys =
     if esDevTipo r Senior && existeProyectoEn (proyectoDe r) pys
     then r : devsSeniorDe rs pys
@@ -451,7 +453,8 @@ devsSeniorDe (r:rs) pys =
 esDevTipo :: Rol -> Seniority -> Bool
 {- Dado un Rol y un Seniority, indica si ese Rol tiene el Seniority dado.
 Precondición: ninguna. -}
-esDevTipo (Developer srol _) s = esMismoSeniority srol s 
+esDevTipo (Management srol _) _ = False
+esDevTipo (Developer srol _) s = esMismoSeniority srol s
 
 esMismoSeniority :: Seniority -> Seniority -> Bool
 {- Dados dos tipo de Seniority, indica si son del mismo tipo.
@@ -460,3 +463,49 @@ esMismoSeniority Junior Junior = True
 esMismoSeniority SemiSenior SemiSenior = True
 esMismoSeniority Senior Senior = True
 esMismoSeniority _ _ = False
+----------
+
+cantQueTrabajanEn :: [Proyecto]-> Empresa-> Int
+{- Indica la cantidad de empleados que trabajan en alguno de los proyectos dados.
+Precondición: ninguna. -}
+cantQueTrabajanEn pys (ConsEmpresa rs) = cantDevsQueTrabajanEn rs pys
+
+cantDevsQueTrabajanEn :: [Rol] -> [Proyecto] -> Int
+{- Dada una lista de Rol y una lista de Proyecto, retorna la cantidad de empleados que trabajan en al menos uno de los proyectos.
+Precondición: ninguna. -}
+cantDevsQueTrabajanEn [] _ = 0
+cantDevsQueTrabajanEn (r:rs) pys = unoSi' (trabajaEnAlguno r pys) + cantDevsQueTrabajanEn rs pys
+
+unoSi' :: Bool -> Int
+unoSi' True  = 1
+unoSi' False = 0
+
+trabajaEnAlguno :: Rol -> [Proyecto] -> Bool
+{- Dado un Rol y una lista de Proyecto, indica si trabaja en alguno de los proyectos dados.
+Precondición: ninguna. -}
+trabajaEnAlguno (Developer _ pyr) pys = existeProyectoEn pyr pys
+trabajaEnAlguno (Management _ pyr) pys = existeProyectoEn pyr pys
+----------
+
+asignadosPorProyecto :: Empresa-> [(Proyecto, Int)]
+{- Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su
+cantidad de personas involucradas.
+Precondición: ninguna. -}
+asignadosPorProyecto emp = armarAsignadosEn (proyectos emp) emp
+
+armarAsignadosEn :: [Proyecto] -> Empresa -> [(Proyecto, Int)]
+{- Dada una lista de Proyecto y una Empresa, retorna una lista de pares con el Proyecto yla cantidad de empleados asigados a ellas, sin repetir.
+Precondición: ninguna. -}
+armarAsignadosEn [] _ = []
+armarAsignadosEn (py:pys) emp = (py, cantQueTrabajanEnProyectoDe py emp) : armarAsignadosEn pys emp
+
+cantQueTrabajanEnProyectoDe :: Proyecto -> Empresa -> Int
+{- Dado un Proyecto y una Empresa, retorna la cantidad de empleados de la empresa que trabajan en dicho proyecto.
+Precondición: ninguna. -}
+cantQueTrabajanEnProyectoDe py (ConsEmpresa roles) = cantQueTrabajanEnProyecto (nombreProyecto py) roles
+
+cantQueTrabajanEnProyecto :: String -> [Rol] -> Int
+{- Dado un nombre de proyecto y una lista de Rol, retorna la cantidad de empleados que trabajan en dicho proyecto.
+Precondición: ninguna. -}
+cantQueTrabajanEnProyecto _ [] = 0
+cantQueTrabajanEnProyecto n (r:rs) = unoSi' (n == nombreProyecto(proyectoDe r)) + cantQueTrabajanEnProyecto n rs
