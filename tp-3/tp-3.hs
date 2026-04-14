@@ -138,13 +138,42 @@ el rango es 3 y 5, indica la cantidad de tesoros que hay entre hacer 3 pasos y h
 incluidos tanto 3 como 5 en el resultado.
 Precondición: -}
 cantTesorosEntre _ _ Fin = 0
-cantTesorosEntre n m (Nada c) =
+cantTesorosEntre n m (Nada c) = validarLimite n m c
+cantTesorosEntre n m (Cofre objs c) = validarRango n m objs c
+
+validarLimite :: Int -> Int -> Camino -> Int
+validarLimite n m c = 
     if m < 0
        then 0 -- Ya me pasé del rango, no sigo recorriendo
        else cantTesorosEntre (n-1) (m-1) c
-cantTesorosEntre n m (Cofre objs c) =
+
+validarRango :: Int -> Int -> [Objeto] -> Camino -> Int
+validarRango n m objs c =
     if m < 0
        then 0 -- Ya me pasé del rango
-       else if n > 0
-            then cantTesorosEntre (n-1) (m-1) c -- Todavía no llegué al rango
-            else cantTesoros objs + cantTesorosEntre (n-1) (m-1) c -- Estoy dentro del rango
+       else sumarTesorosSiEsMayorACero n m objs c
+
+sumarTesorosSiEsMayorACero :: Int -> Int -> [Objeto] -> Camino -> Int
+sumarTesorosSiEsMayorACero n m objs c =
+    if n > 0
+        then cantTesorosEntre (n-1) (m-1) c -- Todavía no llegué al rango
+        else cantTesoros objs + cantTesorosEntre (n-1) (m-1) c -- Estoy dentro del rango
+----------
+
+{-2. Tipos arbóreos
+2.1. Árboles binarios
+Dada esta definición para árboles binarios-}
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a)
+t0 = EmptyT
+t1 = NodeT 0 t0 t0
+t2 = NodeT 2 t0 t1
+t3 = NodeT 3 t1 t2
+t4 = NodeT 4 t3 t3
+t5 = NodeT 5 t0 t4
+--defina las siguientes funciones utilizando recursión estructural según corresponda:
+
+sumarT :: Tree Int-> Int
+{-Dado un árbol binario de enteros devuelve la suma entre sus elementos.
+Precondición: -}
+sumarT EmptyT = 0
+sumarT NodeT x ti td = x + sumarT ti + sumarT td
