@@ -163,7 +163,13 @@ sumarTesorosSiEsMayorACero n m objs c =
 {-2. Tipos arbóreos
 2.1. Árboles binarios
 Dada esta definición para árboles binarios-}
-
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
+t0 = EmptyT
+t1 = NodeT (0 :: Int) t0 t0
+t2 = NodeT 2 t0 t1
+t3 = NodeT 0 t1 t2
+t4 = NodeT 4 t3 t3
+t5 = NodeT 5 t0 t4
 --defina las siguientes funciones utilizando recursión estructural según corresponda:
 
 sumarT :: Tree Int-> Int
@@ -212,14 +218,6 @@ leaves EmptyT = []
 leaves (NodeT x EmptyT EmptyT) = [x]
 leaves (NodeT _ ti td) = leaves ti ++ leaves td
 
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
-t0 = EmptyT
-t1 = NodeT (0 :: Int) t0 t0
-t2 = NodeT 2 t0 t1
-t3 = NodeT 0 t1 t2
-t4 = NodeT 4 t3 t3
-t5 = NodeT 5 t0 t4
-
 heightT :: Tree a -> Int
 {- Dado un árbol devuelve su altura.
 Nota: la altura de un árbol (height en inglés), también llamada profundidad, es
@@ -227,6 +225,53 @@ la cantidad de niveles del árbol1. La altura para EmptyT es 0, y para una hoja
 es 1.
 Precondición: ninguna. -}
 heightT EmptyT = 0
-heightT (NodeT _ ti td) = 1 + max (heightT ti) (heightT td)  
+heightT (NodeT _ ti td) = 1 + max (heightT ti) (heightT td)
 
+mirrorT :: Tree a-> Tree a
+{- Dado un árbol devuelve el árbol resultante de intercambiar el hijo izquierdo con
+el derecho, en cada nodo del árbol.
+Precondición: ninguna. -}
+mirrorT EmptyT = EmptyT
+mirrorT (NodeT x ti td) = NodeT x (mirrorT td) (mirrorT ti)
 
+toList :: Tree a-> [a]
+{- Dado un árbol devuelve una lista que representa el resultado de recorrerlo en
+modo in-order.
+Nota: En el modo in-order primero se procesan los elementos del hijo izquierdo,
+luego la raiz y luego los elementos del hijo derecho.
+Precondición: ninguna. -}
+toList EmptyT = []
+toList (NodeT x ti td) = toList ti ++ [x] ++ toList td
+
+levelN :: Int-> Tree a-> [a]
+{- Dados un número n y un árbol devuelve una lista con los nodos de nivel n. El
+nivel de un nodo es la distancia que hay de la raíz hasta él. La distancia de la
+raiz a sí misma es 0, y la distancia de la raiz a uno de sus hijos es 1.
+Nota: El primer nivel de un árbol (su raíz) es 0.
+Precondición: el nivel n buscado no puede exceder la profundidad del árbol y
+              el nivel n buscado no puede ser negativo. -}
+levelN _ EmptyT = []
+levelN 0 (NodeT x _ _) = [x]
+levelN n tree =
+    if heightT tree < n then error "el nivel n buscado no puede exceder la profundidad del árbol"
+    else if n<0 then error "el nivel n buscado no puede ser negativo"
+    else levelNValidado n tree
+
+levelNValidado :: Int -> Tree a -> [a]
+{- Dados un número n y un árbol devuelve una lista con los nodos de nivel n
+ya sabiendo que n está dentro de la produndidad del árbol.
+Precondición: ninguna. -}
+levelNValidado n (NodeT x ti td) = let nextLevel = n-1 in levelN nextLevel ti ++ levelN nextLevel td
+
+listPerLevel :: Tree a-> [[a]]
+{-Dado un árbol devuelve una lista de listas en la que cada elemento representa
+un nivel de dicho árbol.
+Precondición: -}
+listPerLevel EmptyT = []
+listPerLevel tree =
+    let deep = heightT tree
+    in leavesEveryLevel deep tree
+
+leavesEveryLevel :: Int -> Tree a -> [[a]]
+leavesEveryLevel 0 _ = []
+leavesEveryLevel n tree = levelN n tree : leavesEveryLevel (n-1) tree
