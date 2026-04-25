@@ -163,13 +163,7 @@ sumarTesorosSiEsMayorACero n m objs c =
 {-2. Tipos arbóreos
 2.1. Árboles binarios
 Dada esta definición para árboles binarios-}
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
-t0 = EmptyT
-t1 = NodeT (0 :: Int) t0 t0
-t2 = NodeT 2 t0 t1
-t3 = NodeT 0 t1 t2
-t4 = NodeT 4 t3 t3
-t5 = NodeT 5 t0 t4
+
 --defina las siguientes funciones utilizando recursión estructural según corresponda:
 
 sumarT :: Tree Int-> Int
@@ -210,5 +204,29 @@ Precondición: ninguna. -}
 aparicionesT _ EmptyT = 0
 aparicionesT e (NodeT x ti td) = unoSi(e == x) + (aparicionesT e ti) + (aparicionesT e td)
 
+leaves :: Tree a -> [a]
+{- Dado un árbol devuelve los elementos que se encuentran en sus hojas.
+NOTA: en este tipo se de�ne como hoja a un nodo con dos hijos vacíos.
+Precondición: ninguna. -}
+leaves EmptyT = []
+leaves (NodeT x EmptyT EmptyT) = [x]
+leaves (NodeT _ ti td) = leaves ti ++ leaves td
+
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
+t0 = EmptyT
+t1 = NodeT (0 :: Int) t0 t0
+t2 = NodeT 2 t0 t1
+t3 = NodeT 0 t1 t2
+t4 = NodeT 4 t3 t3
+t5 = NodeT 5 t0 t4
+
+heightT :: Tree a -> Int
+{- Dado un árbol devuelve su altura.
+Nota: la altura de un árbol (height en inglés), también llamada profundidad, es
+la cantidad de niveles del árbol1. La altura para EmptyT es 0, y para una hoja
+es 1.
+Precondición: ninguna. -}
+heightT EmptyT = 0
+heightT (NodeT _ ti td) = 1 + max (heightT ti) (heightT td)  
 
 
