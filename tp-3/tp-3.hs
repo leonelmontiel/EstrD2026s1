@@ -167,7 +167,7 @@ data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
 t0 = EmptyT
 t1 = NodeT (0 :: Int) t0 t0
 t2 = NodeT 2 t0 t1
-t3 = NodeT 3 t1 t2
+t3 = NodeT 0 t1 t2
 t4 = NodeT 4 t3 t3
 t5 = NodeT 5 t0 t4
 --defina las siguientes funciones utilizando recursión estructural según corresponda:
@@ -206,8 +206,9 @@ perteneceT e (NodeT x ti td) = e == x || perteneceT e ti || perteneceT e td
 aparicionesT :: Eq a => a -> Tree a -> Int
 {- Dados un elemento e y un árbol binario devuelve la cantidad de elementos del árbol que son
 iguales a e.
-Precondición:  -}
-aparicionesT 
+Precondición: ninguna. -}
+aparicionesT _ EmptyT = 0
+aparicionesT e (NodeT x ti td) = unoSi(e == x) + (aparicionesT e ti) + (aparicionesT e td)
 
 
 
