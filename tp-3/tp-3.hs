@@ -163,9 +163,9 @@ sumarTesorosSiEsMayorACero n m objs c =
 {-2. Tipos arbóreos
 2.1. Árboles binarios
 Dada esta definición para árboles binarios-}
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a)
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
 t0 = EmptyT
-t1 = NodeT 0 t0 t0
+t1 = NodeT (0 :: Int) t0 t0
 t2 = NodeT 2 t0 t1
 t3 = NodeT 3 t1 t2
 t4 = NodeT 4 t3 t3
@@ -174,6 +174,40 @@ t5 = NodeT 5 t0 t4
 
 sumarT :: Tree Int-> Int
 {-Dado un árbol binario de enteros devuelve la suma entre sus elementos.
-Precondición: -}
+Precondición: ninguna. -}
 sumarT EmptyT = 0
-sumarT NodeT x ti td = x + sumarT ti + sumarT td
+sumarT (NodeT x ti td) = x + sumarT ti + sumarT td
+
+sizeT :: Tree a -> Int
+{-Dado un árbol binario devuelve su cantidad de elementos, es decir, el tamaño del árbol (size
+en inglés).
+Precondición: niguna. -}
+sizeT EmptyT = 0
+sizeT (NodeT _ ti td) = 1 + sizeT ti + sizeT td
+
+mapDobleT :: Tree Int -> Tree Int
+{- Dado un árbol de enteros devuelve un árbol con el doble de cada número.
+Precondición: ninguna -}
+mapDobleT EmptyT = EmptyT
+mapDobleT (NodeT x ti td) = NodeT (dobleDe x) (mapDobleT ti) (mapDobleT td)
+
+dobleDe :: Int -> Int
+{- Dado un numero de tipo Int, retorna su doble.
+Precondición: ninguna. -}
+dobleDe n = n * 2
+
+perteneceT :: Eq a => a -> Tree a -> Bool
+{- Dados un elemento y un árbol binario devuelve True si existe un elemento igual a ese en el
+árbol.
+Precondición: ninguna. -}
+perteneceT _ EmptyT = False
+perteneceT e (NodeT x ti td) = e == x || perteneceT e ti || perteneceT e td
+
+aparicionesT :: Eq a => a -> Tree a -> Int
+{- Dados un elemento e y un árbol binario devuelve la cantidad de elementos del árbol que son
+iguales a e.
+Precondición:  -}
+aparicionesT 
+
+
+
