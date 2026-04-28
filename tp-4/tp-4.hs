@@ -77,5 +77,57 @@ Precondición: ninguna -}
 contarCapas Prepizza = 0
 contarCapas (Capa _ p) = 1 + contarCapas p
 
+--------------------
 
+{- 2. Mapa de tesoros (con bifurcaciones)
+Un mapa de tesoros es un árbol con bifurcaciones que terminan en cofres. Cada bifurcación y
+cada cofre tiene un objeto, que puede ser chatarra o un tesoro.-}
+data Dir = Izq | Der
+data Objeto = Tesoro | Chatarra deriving Show
+data Cofre = Cofre [Objeto] deriving Show
+data Mapa = Fin Cofre | Bifurcacion Cofre Mapa Mapa deriving Show
 
+ob0 = []
+ob1 = [Chatarra]
+ob2 = [Tesoro]
+ob3 = ob1++ob2
+ob4 = ob1++ob1
+ob5 = ob3++ob2
+
+c0 = Cofre ob0
+c1 = Cofre ob1
+c2 = Cofre ob2
+c3 = Cofre ob3
+c4 = Cofre ob4
+c5 = Cofre ob5
+
+m0 = Fin c0
+m1 = Fin c1
+m2 = Fin c2
+m3 = Bifurcacion c3 m0 m1
+m4 = Bifurcacion c4 m1 m2
+m5 = Bifurcacion c1 m1 m1
+m6 = Bifurcacion c1 m0 m2
+
+--Definir las siguientes operaciones:
+hayTesoro :: Mapa-> Bool
+{-Indica si hay un tesoro en alguna parte del mapa.
+Precondición: tiene que existir al menos un objeto en cada cofre. -}
+hayTesoro (Fin c) = tieneTesoro c
+hayTesoro (Bifurcacion c mi md) = tieneTesoro c || hayTesoro mi || hayTesoro md
+
+tieneTesoro :: Cofre -> Bool
+tieneTesoro (Cofre []) = error "Tiene que existir al menos un objeto"
+tieneTesoro (Cofre objs) = existeTesoro objs
+
+existeTesoro :: [Objeto] -> Bool
+{- Dada una lista de tipo Objeto, indica si contiene al menos un Tesoro.
+Precondición: ninguna. -}
+existeTesoro [] = False
+existeTesoro (obj:objs) = esTesoro obj || existeTesoro objs
+
+esTesoro :: Objeto -> Bool
+{- Dado un Objeto, indica si es un Tesoro.
+Precondición: ninguna. -}
+esTesoro Tesoro = True
+esTesoro _ = False
