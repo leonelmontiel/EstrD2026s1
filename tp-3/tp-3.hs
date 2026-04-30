@@ -248,13 +248,11 @@ levelN :: Int-> Tree a-> [a]
 nivel de un nodo es la distancia que hay de la raíz hasta él. La distancia de la
 raiz a sí misma es 0, y la distancia de la raiz a uno de sus hijos es 1.
 Nota: El primer nivel de un árbol (su raíz) es 0.
-Precondición: el nivel n buscado no puede exceder la profundidad del árbol y
-              el nivel n buscado no puede ser negativo. -}
+Precondición: el nivel n buscado no puede ser negativo. -}
 levelN _ EmptyT = []
 levelN 0 (NodeT x _ _) = [x]
 levelN n tree =
-    if heightT tree < n then error "el nivel n buscado no puede exceder la profundidad del árbol"
-    else if n<0 then error "el nivel n buscado no puede ser negativo"
+    if n<0 then error "el nivel n buscado no puede ser negativo" 
     else levelNValidado n tree
 
 levelNValidado :: Int -> Tree a -> [a]
@@ -266,12 +264,16 @@ levelNValidado n (NodeT x ti td) = let nextLevel = n-1 in levelN nextLevel ti ++
 listPerLevel :: Tree a-> [[a]]
 {-Dado un árbol devuelve una lista de listas en la que cada elemento representa
 un nivel de dicho árbol.
-Precondición: -}
+Precondición: ninguna. -}
 listPerLevel EmptyT = []
 listPerLevel tree =
-    let deep = heightT tree
+    let deep = heightT tree -1
     in leavesEveryLevel deep tree
 
 leavesEveryLevel :: Int -> Tree a -> [[a]]
-leavesEveryLevel 0 _ = []
+{- Dados un número n y un árbol, devuelve una lista con los nodos de cada nivel.
+Precondición: ninguna. -}
+leavesEveryLevel 0 tree = [levelN 0 tree]
 leavesEveryLevel n tree = levelN n tree : leavesEveryLevel (n-1) tree
+
+
