@@ -82,7 +82,7 @@ contarCapas (Capa _ p) = 1 + contarCapas p
 {- 2. Mapa de tesoros (con bifurcaciones)
 Un mapa de tesoros es un árbol con bifurcaciones que terminan en cofres. Cada bifurcación y
 cada cofre tiene un objeto, que puede ser chatarra o un tesoro.-}
-data Dir = Izq | Der
+data Dir = Izq | Der deriving Show
 data Objeto = Tesoro | Chatarra deriving Show
 data Cofre = Cofre [Objeto] deriving Show
 data Mapa = Fin Cofre | Bifurcacion Cofre Mapa Mapa deriving Show
@@ -108,7 +108,8 @@ m3 = Bifurcacion c3 m0 m1
 m4 = Bifurcacion c4 m1 m2
 m5 = Bifurcacion c1 m1 m1
 m6 = Bifurcacion c1 m0 m2
-
+m7 = Bifurcacion c1 m4 m4
+-----
 --Definir las siguientes operaciones:
 hayTesoro :: Mapa-> Bool
 {-Indica si hay un tesoro en alguna parte del mapa.
@@ -131,3 +132,39 @@ esTesoro :: Objeto -> Bool
 Precondición: ninguna. -}
 esTesoro Tesoro = True
 esTesoro _ = False
+-----
+
+hayTesoroEn :: [Dir]-> Mapa-> Bool
+{-Indica si al final del camino hay un tesoro. Nota: el final de un camino se representa con una
+lista vacía de direcciones.
+Precondición: ninguna -}
+hayTesoroEn [] m = nodoTieneTesoro m
+hayTesoroEn (dir:dirs) m = hayTesoroEn dirs (desviarCamino dir m)
+
+nodoTieneTesoro :: Mapa -> Bool
+{- Dado un Mapa indica si el nodo de dicho mapa tiene un tesoro.
+Precondición: ninguna. -}
+nodoTieneTesoro (Fin c) = tieneTesoro c
+nodoTieneTesoro (Bifurcacion c _ _) = tieneTesoro c
+
+desviarCamino :: Dir -> Mapa -> Mapa
+{- Dada una Dir y un Mapa, retorna la rama del mapa según la dirección dada.
+Precondición: el mapa debe ser una Bifurcación. -}
+desviarCamino Izq (Bifurcacion _ mi _) = mi
+desviarCamino Der (Bifurcacion _ _ md) = md
+desviarCamino _ _ = error "El camino excede el límite del mapa dado"
+-----
+
+caminoAlTesoro :: Mapa-> [Dir]
+{- Indica el camino al tesoro.
+Precondición: existe un tesoro y es único.  -}
+caminoAlTesoro (Fin c) =
+  if tieneTesoro c
+    then []
+    else error "Debe existir al menos un tesoro en el mapa"
+caminoAlTesoro (Bifurcacion _ mi md) = 
+  if hayTesoro mi
+    then Izq : caminoAlTesoro mi
+    else if hayTesoro md
+      then Der : caminoAlTesoro md
+      else error "Debe existir al menos un tesoro en el mapa"
