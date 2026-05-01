@@ -91,7 +91,7 @@ ob0 = []
 ob1 = [Chatarra]
 ob2 = [Tesoro]
 ob3 = ob1++ob2
-ob4 = ob1++ob1
+ob4 = ob2++ob2
 ob5 = ob3++ob2
 
 c0 = Cofre ob0
@@ -106,9 +106,11 @@ m1 = Fin c1
 m2 = Fin c2
 m3 = Bifurcacion c3 m0 m1
 m4 = Bifurcacion c4 m1 m2
-m5 = Bifurcacion c1 m1 m1
+m5 = Bifurcacion c5 m1 m1
 m6 = Bifurcacion c1 m0 m2
 m7 = Bifurcacion c1 m4 m4
+m8 = Bifurcacion c4 m7 m1
+m9 = Bifurcacion c2 m5 m8
 -----
 --Definir las siguientes operaciones:
 hayTesoro :: Mapa-> Bool
@@ -168,3 +170,40 @@ caminoAlTesoro (Bifurcacion _ mi md) =
     else if hayTesoro md
       then Der : caminoAlTesoro md
       else error "Debe existir al menos un tesoro en el mapa"
+-----
+
+caminoDeLaRamaMasLarga :: Mapa -> [Dir]
+{-Indica el camino de la rama más larga.
+Precondición: ninguna -}
+caminoDeLaRamaMasLarga (Fin c) = []
+caminoDeLaRamaMasLarga (Bifurcacion _ mi md) = 
+	if length(caminoDeLaRamaMasLarga mi) > length(caminoDeLaRamaMasLarga md)
+	then Izq : caminoDeLaRamaMasLarga mi
+	else Der : caminoDeLaRamaMasLarga md
+
+tesorosPorNivel :: Mapa -> [[Objeto]]
+{-Devuelve los tesoros separados por nivel en el árbol.
+Precondición: ninguna -}
+tesorosPorNivel (Fin c) = [tesorosDe c]
+tesorosPorNivel (Bifurcacion c mi md) = 
+	tesorosDe c : tesorosPorNivel mi ++ tesorosPorNivel md
+	
+tesorosDe :: Cofre -> [Objeto]
+{- Dado un Cofre, devuelve una lista de los tesoros que tiene.
+Precondición: ninguna. -}
+tesorosDe (Cofre obs) = obtenerTesoros obs
+
+obtenerTesoros :: [Objeto] -> [Objeto]
+{- Dada una lista de Objeto, retorna una lista con los que son Tesoro.
+Precondición: ninguna. -}
+obtenerTesoros [] = []
+obtenerTesoros (ob:obs) =
+	if esTesoro ob
+	then ob : obtenerTesoros obs
+	else obtenerTesoros obs
+
+
+
+
+
+
