@@ -228,15 +228,15 @@ agregarDer (cam:cams) = (Der : cam) : agregarDer cams
 modelaremos una Nave como un tipo algebraico, el cual nos permite construir una nave espacial,
 dividida en sectores, a los cuales podemos asignar tripulantes y componentes. La representación
 es la siguiente:-}
-data Componente = LanzaTorpedos | Motor Int | Almacen [Barril]
+data Componente = LanzaTorpedos | Motor Int | Almacen [Barril] deriving Show
 data Barril = Comida | Oxigeno | Torpedo | Combustible deriving Show
-data Sector = S SectorId [Componente] [Tripulante]
+data Sector = S SectorId [Componente] [Tripulante] deriving Show
 
 type SectorId = String
 type Tripulante = String
 
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a)
-data Nave = N (Tree Sector)
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
+data Nave = N (Tree Sector) deriving Show
 
 b0 = []
 b1 = [Comida, Oxigeno]
@@ -330,51 +330,132 @@ cantPoderMotor _ = 0
 barriles :: Nave -> [Barril]
 {- Propósito: Devuelve todos los barriles de la nave.
 Precondición: ninguna. -}
-barriles (N ts) = barrilesEn ts
+barriles (N ts) = sinRepetidosBarriles (barrilesEn ts)
 
 barrilesEn :: Tree Sector -> [Barril]
-{- Dado un árbol de Sector, devuelve los barriles que existen en él, sin repetir.
+{- Dado un árbol de Sector, retorna una lista con los Barriles que hay en él.
 Precondición: ninguna. -}
 barrilesEn EmptyT = []
-barrilesEn (NodeT s tsi tsd) = barrilesDel s ++ barrilesEn tsi ++ barrilesEn tsd
+barrilesEn (NodeT s ti td) =
+  barrilesDel s ++ barrilesEn ti ++ barrilesEn td
 
 barrilesDel :: Sector -> [Barril]
-{- Dado un Sector, devuelve los barriles que existen en él, sin repetir.
+{- Dado un Sector, retorna una lista con los Barriles que hay en él.
 Precondición: ninguna. -}
-barrilesDel (S _ comps _) = obtenerBarriles comps
+barrilesDel (S _ comps _) = concatMap barrilesDeComponente comps
 
-obtenerBarriles :: [Componente] -> [Barril]
-{- Dada una lista de Componente, devuelve los barriles que existen en él, sin repetir.
+barrilesDeComponente :: Componente -> [Barril]
+{- Dado un Componente, retorna una lista con sus Barriles si es un Almacen.
 Precondición: ninguna. -}
-obtenerBarriles [] = []
-obtenerBarriles (comp:comps) = barrilesSinRepetir (barrilesSiEsAlmacen comp ++ obtenerBarriles comps)
+barrilesDeComponente (Almacen bs) = bs
+barrilesDeComponente _ = []
 
-barrilesSiEsAlmacen :: Componente -> [Barril]
-{- Dado un Componente, devuelve los barriles que existen en él, sin repetir.
+sinRepetidosBarriles :: [Barril] -> [Barril]
+{- Dada una lista de Barril, la retorna sin los barriles que se repiten.
 Precondición: ninguna. -}
-barrilesSiEsAlmacen (Almacen bs) = bs
-barrilesSiEsAlmacen _ = []
-
-barrilesSinRepetir :: [Barril] -> [Barril]
-{- Dada una lista de Barril, devuelve los barriles que existen en él, sin repetir.
-Precondición: ninguna. -}
-barrilesSinRepetir [] = []
-barrilesSinRepetir (b:bs) =
+sinRepetidosBarriles [] = []
+sinRepetidosBarriles (b:bs) = 
   if perteneceBarrilA b bs
-    then barrilesSinRepetir bs
-    else b : barrilesSinRepetir bs 
+    then sinRepetidosBarriles bs
+    else b : sinRepetidosBarriles bs
 
 perteneceBarrilA :: Barril -> [Barril] -> Bool
-{- Dado un Barril y una lista de Barril, indica si existe en ella.
+{- Dado un Barril y una lista de Barril, indica si el elemento pertenece a la lista.
 Precondición: ninguna. -}
 perteneceBarrilA _ [] = False
 perteneceBarrilA b (b':bs) = esMismoBarril b b' || perteneceBarrilA b bs
 
 esMismoBarril :: Barril -> Barril -> Bool
-{- Dado dos Barriles, indi a si son del mismo tipo.
+{- Dado dos elementos de tipo Barril, indica si son lo mismo.
 Precondición: ninguna. -}
 esMismoBarril Comida Comida = True
 esMismoBarril Oxigeno Oxigeno = True
 esMismoBarril Torpedo Torpedo = True
 esMismoBarril Combustible Combustible = True
 esMismoBarril _ _ = False
+-----
+
+-- data Componente = LanzaTorpedos | Motor Int | Almacen [Barril]
+-- data Barril = Comida | Oxigeno | Torpedo | Combustible deriving Show
+-- data Sector = S SectorId [Componente] [Tripulante]
+
+-- type SectorId = String
+-- type Tripulante = String
+
+-- data Tree a = EmptyT | NodeT a (Tree a) (Tree a)
+-- data Nave = N (Tree Sector)
+
+agregarASector :: [Componente]-> SectorId-> Nave-> Nave
+{- Propósito: Añade una lista de componentes a un sector de la nave.
+Nota: ese sector puede no existir, en cuyo caso no añade componentes
+Precondición: ninguna. -}
+agregarASector [] _ n = n
+agregarASector comps sid (N ts) = N (agregarASectorEn comps sid ts)
+
+agregarASectorEn :: [Componente]-> SectorId-> Tree Sector -> Tree Sector
+{- Dada una lista de Componente, un SectorId y un árbol de Sector, retorna dicho árbol
+con los componentes listados ya agregados a él, si existiera el id del sector dado.
+Precondición: ninguna. -}
+agregarASectorEn _ _ EmptyT = EmptyT
+agregarASectorEn comps sid (NodeT s si sd) =
+  if tieneMismoId sid s
+    then NodeT (agregarComponentes comps s) si sd
+    else NodeT s (agregarASectorEn comps sid si) (agregarASectorEn comps sid sd)
+
+tieneMismoId :: SectorId -> Sector -> Bool
+{- Dado un SectorId y un Sector, indica si dicho sector tiene el mismo id que el dado.
+Precondición: ninguna. -}
+tieneMismoId sid (S sid' _ _) = sid == sid'
+
+agregarComponentes :: [Componente]-> Sector-> Sector
+{- Dada una lista de Componente y un Sector, retorna dicho Sector con los componentes ya agregados.
+Precondición: ninguna. -}
+agregarComponentes comps (S id comps' ts) = S id (comps++comps') ts
+-----
+
+asignarTripulanteA :: Tripulante-> [SectorId]-> Nave-> Nave
+{- Propósito: Incorpora un tripulante a una lista de sectores de la nave.
+Precondición: Todos los id de la lista existen en la nave. -}
+asignarTripulanteA t sids n =
+  if verificarIdsExisten sids n
+    then asignarTripulanteAImpl t sids n
+    else error "Precondición violada: algunos IDs no existen en la nave"
+
+asignarTripulanteAImpl :: Tripulante-> [SectorId]-> Nave-> Nave
+{- Propósito: Incorpora un tripulante a una lista de sectores de la nave.
+Precondición: ninguna. -}
+asignarTripulanteAImpl _ [] n = n
+asignarTripulanteAImpl t sids (N ts) = N (asignarTripulanteEn t sids ts)
+
+asignarTripulanteEn :: Tripulante -> [SectorId] -> Tree Sector -> Tree Sector
+{- Propósito: Dado un Tripulante, una lista de SectorId y un árbol de Sector, 
+retorna dicho árbol con el Tripulante agregado a sus respectivos sectores.
+Precondición: ninguna. -}
+asignarTripulanteEn _ _ EmptyT = EmptyT
+asignarTripulanteEn t sids (NodeT s si sd) =
+  NodeT (agregarTripulanteSiCoincideId t s sids) (asignarTripulanteEn t sids si) (asignarTripulanteEn t sids sd)
+
+agregarTripulanteSiCoincideId :: Tripulante -> Sector -> [SectorId] -> Sector
+{- Propósito: Dado un Tripulante, un Sector y una lista de SectorId, 
+retorna dicho Sector con el Tripulante agregado si su id coincide con los de la lista.
+Precondición: ninguna. -}
+agregarTripulanteSiCoincideId t s sids =
+  if existeIdEn s sids
+    then agregarTripulante t s
+    else s
+
+existeIdEn :: Sector -> [SectorId] -> Bool
+{- Propósito: Dado un Sector y una lista de SectorId, indica si el id de tal sector está en la lista.
+Precondición: ninguna. -}
+existeIdEn (S id _ _) sids = pertenece id sids
+
+agregarTripulante :: Tripulante -> Sector -> Sector
+{- Propósito: Dado un Tripulante y un Sector, retorna dicho Sectir con el Tripulante agregado.
+Precondición: ninguna. -}
+agregarTripulante t (S id comps ts) = S id comps (t:ts)
+
+verificarIdsExisten :: [SectorId] -> Nave -> Bool
+{- Propósito: Dada una lista de SectorId y una Nave, indica si todos los Ids dados existen en ella.
+Precondición: ninguna. -}
+verificarIdsExisten [] _ = True
+verificarIdsExisten (sid:sids) n = pertenece sid (sectores n) && verificarIdsExisten sids n
