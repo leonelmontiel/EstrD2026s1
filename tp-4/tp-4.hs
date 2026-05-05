@@ -242,12 +242,18 @@ b0 = []
 b1 = [Comida, Oxigeno]
 b2 = b1++[Torpedo, Oxigeno]
 
-s0 = S "0" [] []
-s1 = S "1" [LanzaTorpedos] []
-s2 = S "2" [Motor 8] ["Leo"]
-s3 = S "3" [Almacen b0] ["Leo", "Elias"]
-s4 = S "4" [Motor 20, Almacen b1] ["Leo", "Elias", "Montiel"]
-s5 = S "5" [Almacen b1, Almacen b2] ["Leo", "Elias", "Montiel"]
+trs0 = []
+trs1 = "Leo" : trs0
+trs2 = "Elias" : trs1
+trs3 = "Montiel" : trs2
+trs4 = trs1 ++ trs3
+
+s0 = S "0" [] trs0
+s1 = S "1" [LanzaTorpedos] trs0
+s2 = S "2" [Motor 8] trs1
+s3 = S "3" [Almacen b0] trs2
+s4 = S "4" [Motor 20, Almacen b1] trs3
+s5 = S "5" [Almacen b1, Almacen b2] trs4
 
 ts0 = NodeT s0 EmptyT EmptyT
 ts1 = NodeT s1 ts0 EmptyT
@@ -375,16 +381,6 @@ esMismoBarril Combustible Combustible = True
 esMismoBarril _ _ = False
 -----
 
--- data Componente = LanzaTorpedos | Motor Int | Almacen [Barril]
--- data Barril = Comida | Oxigeno | Torpedo | Combustible deriving Show
--- data Sector = S SectorId [Componente] [Tripulante]
-
--- type SectorId = String
--- type Tripulante = String
-
--- data Tree a = EmptyT | NodeT a (Tree a) (Tree a)
--- data Nave = N (Tree Sector)
-
 agregarASector :: [Componente]-> SectorId-> Nave-> Nave
 {- Propósito: Añade una lista de componentes a un sector de la nave.
 Nota: ese sector puede no existir, en cuyo caso no añade componentes
@@ -459,3 +455,128 @@ verificarIdsExisten :: [SectorId] -> Nave -> Bool
 Precondición: ninguna. -}
 verificarIdsExisten [] _ = True
 verificarIdsExisten (sid:sids) n = pertenece sid (sectores n) && verificarIdsExisten sids n
+-----
+
+sectoresAsignados :: Tripulante-> Nave-> [SectorId]
+{- Propósito: Devuelve los sectores en donde aparece un tripulante dado.
+Precondición: ninguna. -}
+sectoresAsignados t (N ts) = sinRepetidos (sectoresAsignadosEn t ts)
+
+sectoresAsignadosEn :: Tripulante -> Tree Sector -> [SectorId]
+{- Dado un Tripulante y un árbol de Sector, devuelve una lista con los SectorId asignados al tripulante
+dentro del árbol.
+Precondición: ninguna. -}
+sectoresAsignadosEn _ EmptyT = []
+sectoresAsignadosEn t (NodeT s si sd) = agregarIdAsignado t s ((sectoresAsignadosEn t si) ++ (sectoresAsignadosEn t si))
+
+agregarIdAsignado :: Tripulante -> Sector -> [SectorId] -> [SectorId]
+{- Dado un Tripulante, un Sector de la nave y una lista de SectorId, devuelve dicha lista
+con el Id del sector dado solo si está asignado a él el tripulante.
+Precondición: ninguna. -}
+agregarIdAsignado t (S id _ ts) sids = if pertenece t ts then id : sids else sids
+-----
+
+tripulantes :: Nave-> [Tripulante]
+{- Propósito: Devuelve la lista de tripulantes, sin elementos repetidos.
+Precondición: ninguna. -}
+tripulantes (N ts) = sinRepetidos (tripulantesDe ts)
+
+tripulantesDe :: Tree Sector -> [Tripulante]
+{- Dado un árbol de Sector, retorna una lista con los tripulantes que estén en él.
+Precondición: ninguna. -}
+tripulantesDe EmptyT = []
+tripulantesDe (NodeT s si sd) = tripulantesEn s ++ tripulantesDe si ++ tripulantesDe sd
+
+tripulantesEn :: Sector -> [Tripulante]
+{- Dado un Sector, retorna una lista con los tripulantes que estén en él.
+Precondición: ninguna. -}
+tripulantesEn (S _ _ ts) = ts
+-----
+
+{- 4. Manada de lobos
+Modelaremos una manada de lobos, como un tipo Manada, que es un simple registro compuesto
+de una estructura llamada Lobo, que representa una jerarquía entre estos animales.
+Los diferentes casos de lobos que forman la jerarquía son los siguientes:
+
+- Los cazadores poseen nombre, una lista de especies de presas cazadas y 3 lobos a cargo.
+- Los exploradores poseen nombre, una lista de nombres de territorio explorado (nombres de
+bosques, ríos, etc.), y poseen 2 lobos a cargo.
+- Las crías poseen sólo un nombre y no poseen lobos a cargo.
+
+La estructura es la siguiente:-}
+type Presa = String-- nombre de presa
+type Territorio = String-- nombre de territorio
+type Nombre = String-- nombre de lobo
+
+data Lobo = Cazador Nombre [Presa] Lobo Lobo Lobo | Explorador Nombre [Territorio] Lobo Lobo | Cria Nombre
+data Manada = M Lobo
+
+{- 1. Construir un valor de tipo Manada que posea 1 cazador, 2 exploradores y que el resto sean
+crías. Resolver las siguientes funciones utilizando recursión estructural sobre la estructura
+que corresponda en cada caso: -}
+ps0 = []
+ps1 = ["Venado", "Jabalí", "Paloma"]
+ps2 = "Pez" : ps1
+
+l0 = Cria "Tizi"
+l1 = Cria "Lucia"
+l2 = Cria "Leah"
+l3 = Explorador "Mariana" [] l0 l1
+l4 = Explorador "Jorge" ["Quilmes"] l2 l3
+l5 = Cazador "Leo" ps0 l0 l1 l2
+l6 = Cazador "Elias" ps1 l0 l1 l4
+l7 = Cazador "Montiel" ps2 l2 l3 l4
+
+ml0 = M l0
+ml1 = M l1
+ml2 = M l2
+ml3 = M l3
+ml4 = M l4
+ml5 = M l5
+ml6 = M l6
+ml7 = M l7
+
+buenaCaza :: Manada-> Bool
+{-Propósito: dada una manada, indica si la cantidad de alimento cazado es mayor a la
+cantidad de crías.
+Precondición: ninguna. -}
+buenaCaza (M lobo) = buenaCazaDe lobo
+
+buenaCazaDe :: Lobo -> Bool
+{- Dado un Lobo, indica si la cantidad de alimento cazado es mayor a la
+cantidad de crías.
+Precondición: ninguna. -}
+buenaCazaDe (Cazador _ ps l1 l2 l3) = length ps > (unoSi(esCria l1) + unoSi(esCria l2) + unoSi(esCria l3))
+buenaCazaDe _ = False
+
+esCria :: Lobo -> Bool
+{- Dado un Lobo, indica si es una Cría o no.
+Precondición: ninguna. -}
+esCria (Cria _) = True
+esCria _ = False
+
+unoSi :: Bool -> Int
+unoSi True = 1
+unoSi False = 0
+-----
+
+elAlfa :: Manada-> (Nombre, Int)
+{-Propósito: dada una manada, devuelve el nombre del lobo con más presas cazadas, junto
+con su cantidad de presas. Nota: se considera que los exploradores y crías tienen cero presas
+cazadas, y que podrían formar parte del resultado si es que no existen cazadores con más de
+cero presas.
+Precondición: ninguna. -}
+elAlfa (M lobos) = elAlfaDe lobos
+
+elAlfaDe :: Lobo -> (Nombre, Int)
+{- Dado un Lobo, analiza tanto a él como a sus lobos a cargo y devuelve el nombre del lobo con más presas cazadas, junto
+con su cantidad de presas.
+Precondición: ninguna. -}
+elAlfaDe (Cria n) = (n, 0)
+elAlfaDe (Explorador _ _ l0 l1) = alfaEntre (elAlfaDe l0) (elAlfaDe l1)
+elAlfaDe (Cazador n ps l0 l1 l2) = alfaEntre ((n, length ps)) (alfaEntre (elAlfaDe l0) (alfaEntre (elAlfaDe l1) (elAlfaDe l2)))
+
+alfaEntre :: (Nombre, Int) -> (Nombre, Int) -> (Nombre, Int)
+{- Dado dos pares con nombre de lobo y cantidad de presas casadas, devuelve la que tenga mayor cantidad.
+Precondición: ninguna. -}
+alfaEntre (n1, ps1) (n2, ps2) = if ps1 > ps2 then (n1, ps1) else (n2, ps2)
