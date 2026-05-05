@@ -521,11 +521,11 @@ ps2 = "Pez" : ps1
 l0 = Cria "Tizi"
 l1 = Cria "Lucia"
 l2 = Cria "Leah"
-l3 = Explorador "Mariana" [] l0 l1
-l4 = Explorador "Jorge" ["Quilmes"] l2 l3
+l3 = Explorador "Mariana" ["Bernal", "Quilmes"] l0 l1
+l4 = Explorador "Jorge" ["Quilmes", "Bernal", "Berazategui"] l2 l3
 l5 = Cazador "Leo" ps0 l0 l1 l2
 l6 = Cazador "Elias" ps1 l0 l1 l4
-l7 = Cazador "Montiel" ps2 l2 l3 l4
+l7 = Cazador "Montiel" ps2 l2 l6 l4
 
 ml0 = M l0
 ml1 = M l1
@@ -580,3 +580,144 @@ alfaEntre :: (Nombre, Int) -> (Nombre, Int) -> (Nombre, Int)
 {- Dado dos pares con nombre de lobo y cantidad de presas casadas, devuelve la que tenga mayor cantidad.
 Precondición: ninguna. -}
 alfaEntre (n1, ps1) (n2, ps2) = if ps1 > ps2 then (n1, ps1) else (n2, ps2)
+-----
+
+losQueExploraron :: Territorio-> Manada-> [Nombre]
+{- Propósito: dado un territorio y una manada, devuelve los nombres de los exploradores que
+pasaron por dicho territorio
+Precondición: ninguna. -}
+losQueExploraron t (M lobos) = sinRepetidos (losQueExploraronEn t lobos)
+
+losQueExploraronEn :: Territorio -> Lobo -> [Nombre]
+{- Dado un Territorio y un Lobo, devuelve los nombres de los exploradores que
+pasaron por dicho territorio
+Precondición: ninguna.  -}
+losQueExploraronEn t (Explorador n ts l1 l2) = let exploradores = (losQueExploraronEn t l1) ++ (losQueExploraronEn t l2)
+  in agregarExplorador t ts n exploradores
+losQueExploraronEn t (Cazador _ _ l1 l2 l3) = (losQueExploraronEn t l1) ++ (losQueExploraronEn t l2) ++ (losQueExploraronEn t l3)
+losQueExploraronEn _ _ = []
+
+agregarExplorador :: Territorio -> [Territorio] -> Nombre -> [Nombre] -> [Nombre]
+{- Dado un Territorio, una lista de Territorio explorados, un nombre de explorador y una lista de nombres de exploradores,
+retorna dicha lista con el nombre incluído del explorador si es que exploró el territorio dado.
+Precondición: ninguna. -}
+agregarExplorador t ts n exps =
+  if pertenece t ts
+    then n : exps
+    else exps
+-----
+
+exploradoresPorTerritorio :: Manada-> [(Territorio, [Nombre])]
+{- Propósito: dada una manada, denota la lista de los pares cuyo primer elemento es un terri
+torio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
+dicho territorio. Los territorios no deben repetirse.
+Precondición: ninguna. -}
+exploradoresPorTerritorio (M lobo) = sinRepetidos (exploradoresPorTerritorioDe lobo)
+
+exploradoresPorTerritorioDe :: Lobo -> [(Territorio, [Nombre])]
+{- Propósito: dado un Lobo, denota la lista de los pares cuyo primer elemento es un terri
+torio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
+dicho territorio. Los territorios no deben repetirse.
+Precondición: ninguna. -}
+exploradoresPorTerritorioDe (Explorador n ts l1 l2) = 
+  incluirExploradorATerritorios n ts (exploradoresPorTerritorioDe l1 ++ exploradoresPorTerritorioDe l2)
+exploradoresPorTerritorioDe (Cazador _ _ l1 l2 l3) = (exploradoresPorTerritorioDe l1 ++ exploradoresPorTerritorioDe l2 ++ exploradoresPorTerritorioDe l3)
+exploradoresPorTerritorioDe _ = []
+
+incluirExploradorATerritorios :: Nombre -> [Territorio] -> [(Territorio, [Nombre])] -> [(Territorio, [Nombre])]
+{- Propósito: dado un Nombre, una la lista de Territorio, y una lista de los pares cuyo primer elemento es un terri
+torio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
+dicho territorio. Denota dicha lista pero con el nombre del Explorador agregado al territorio explorado.
+Precondición: ninguna. -}
+incluirExploradorATerritorios _ [] ttns = ttns
+incluirExploradorATerritorios n (t:ts) ttns = incluirExploradorATerritorios n ts (agregarNombreSiExploro n t ttns)
+
+agregarNombreSiExploro :: Nombre -> Territorio -> [(Territorio, [Nombre])] -> [(Territorio, [Nombre])]
+{- Propósito: dado un Nombre, un Territorio y una lista de los pares cuyo primer elemento es un terri
+torio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
+dicho territorio. Denota dicha lista pero con el nombre del Explorador agregado al territorio explorado.
+Los territorios no deben repetirse.
+Precondición: ninguna. -}
+agregarNombreSiExploro n t [] = [(t,[n])]
+agregarNombreSiExploro n t (ttns:ttnss) =
+  if t == fst(ttns)
+    then agregarNombre n ttns ttnss
+    else ttns : (agregarNombreSiExploro n t ttnss)
+
+agregarNombre :: Nombre -> (Territorio, [Nombre]) -> [(Territorio, [Nombre])] -> [(Territorio, [Nombre])]
+{- Dado un Nombre, un par cuyo primer elemento es un territorio y cuyo segundo elemento es la lista de los
+nombres de los exploradores que exploraron dicho territorio, y una lista de dichos pares, denota la lista 
+pero con el nombre del Explorador agregado al territorio explorado. -}
+agregarNombre n (t,ns) ttnss = (t, n : ns) : ttnss
+-----
+
+cazadoresSuperioresDe :: Nombre-> Manada-> [Nombre]
+{-Propósito: dado el nombre de un lobo y una manada, indica el nombre de todos los cazadores
+que tienen como subordinado al lobo dado (puede ser un subordinado directo, o el subordinado
+de un subordinado).
+Precondición: hay un lobo con dicho nombre y es único.
+Eficiencia: O(n), donde n es el número de lobos en la manada, ya que revisa cada lobo una sola vez. -}
+cazadoresSuperioresDe n m =
+  if existeLobo n m
+    then cazadoresSuperioresEn n (extraerLobo m)
+    else error "Precondición violada: el lobo no existe en la manada"
+
+existeLobo :: Nombre -> Manada -> Bool
+existeLobo n (M lobo) = estaEnLobo n lobo
+
+extraerLobo :: Manada -> Lobo
+extraerLobo (M lobo) = lobo
+
+cazadoresSuperioresEn :: Nombre -> Lobo -> [Nombre]
+{- Dado un Nombre y un Lobo, indica el nombre de todos los cazadores
+que tienen como subordinado al lobo dado.
+Precondición: hay un lobo con dicho nombre y es único. -}
+cazadoresSuperioresEn _ (Cria _) = []
+cazadoresSuperioresEn n (Explorador ne _ l1 l2) =
+  if n == ne
+    then []
+    else cazadoresSuperioresEn n l1 ++ cazadoresSuperioresEn n l2
+cazadoresSuperioresEn n (Cazador nc _ l1 l2 l3) =
+  if n == nc
+    then []
+    else
+      if estaEnLobo n l1 || estaEnLobo n l2 || estaEnLobo n l3
+        then nc : (cazadoresSuperioresEn n l1 ++ cazadoresSuperioresEn n l2 ++ cazadoresSuperioresEn n l3)
+        else []
+
+estaEnLobo :: Nombre -> Lobo -> Bool
+{- Dado un Nombre y un Lobo, indica si el nombre es está en la jerarquía del lobo. -}
+estaEnLobo n (Cria nombre) = n == nombre
+estaEnLobo n (Explorador nombre _ l1 l2) = n == nombre || (estaEnLobo n l1 || estaEnLobo n l2)
+estaEnLobo n (Cazador nombre _ l1 l2 l3) = n == nombre || (estaEnLobo n l1 || estaEnLobo n l2 || estaEnLobo n l3)
+
+--Suponiendo la siguiente manada de ejemplo:
+
+manadaEj = M (Cazador "DienteFiloso" ["Búfalos", "Antílopes"] (Cria "Hopito")
+  (Explorador "Incansable" ["Oeste hasta el río"]
+    (Cria "MechónGris")
+    (Cria "Rabito")
+  )
+  (Cazador "Garras" ["Antílopes", "Ciervos"]
+    (Explorador "Zarpado" ["Bosque este"]
+      (Cria "Osado")
+      (Cazador "Mandíbulas" ["Cerdos", "Pavos"]
+        (Cria "Desgreñado")
+        (Cria "Malcriado")
+        (Cazador "TrituraHuesos" ["Conejos"]
+          (Cria "Peludo")
+          (Cria "Largo")
+          (Cria "Menudo")
+        )
+      )
+    )
+    (Cria "Garrita")
+    (Cria "Manchas")
+  ))
+{-la función cazadoresSuperioresDe debería dar lo siguiente:
+cazadoresSuperioresDe "Mandíbulas" manadaEj = ["DienteFiloso", "Garras"]
+cazadoresSuperioresDe "Rabito" manadaEj = ["DienteFiloso"]
+cazadoresSuperioresDe "DienteFiloso" manadaEj = []
+cazadoresSuperioresDe "Peludo" manadaEj =
+["DienteFiloso", "Garras", "Mandíbulas", "TrituraHuesos"]
+-}
