@@ -1,2 +1,0 @@
-:load tp-4.hs
-print (cazadoresSuperioresDe "Mandíbulas" manadaEj)
