@@ -1,0 +1,20 @@
+{-Invariantes de representación-}
+
+{-
+- Restricciones sobre la representación (y sus difrentes partes).
+	- no debe tener información inconsistente.
+	- hay restricciones válidas e inválidas.
+- Qué tiene que garantizar en la Implementación.
+- Pueden cambiarte la eficiencia.
+- Hablan siempre de la representación y nunca del tipo.
+- Es distinto de la Precondición y también distinto de la Interpretación que uno hace.
+
+sacar :: Queue -> Int
+- Precondición: la Queue no es vacía (ESTO NO IRÍA EN LA INV.)
+
+Para un tipo Conjunto que se implementa con una Lista, como Inv. iría:
+- la lista no tiene repetidos (el usuario del tipo Conjunto no se entera de esto, va en la implementación).
+ 
+No iría:
+ - no se puede sacar un elemento de una Queue vacía (esto es para el usuario).
+-}
