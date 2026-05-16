@@ -1,0 +1,6 @@
+﻿Característica,BST (Binary Search Tree),AVL (Adelson-Velsky & Landis)
+Condición de balance,No garantiza balance: la diferencia de alturas puede ser grande.,La diferencia de alturas entre subárbol izquierdo y derecho ≤ 1.
+Altura máxima,"Puede llegar a n (en el peor caso, árbol degenerado tipo lista).","Se mantiene en O(\\log n)."
+Costo de búsqueda,"Promedio: O(\\log n). Peor caso: O(n).","Siempre O(\\log n)."
+Inserción/Eliminación,"Simples, pero pueden desbalancear el árbol.",Requieren rotaciones para mantener balance.
+Uso típico,Cuando no importa tanto el peor caso.,Cuando se necesita garantizar eficiencia en todas las operaciones.

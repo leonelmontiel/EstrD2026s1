@@ -120,6 +120,8 @@ hayTesoro (Fin c) = tieneTesoro c
 hayTesoro (Bifurcacion c mi md) = tieneTesoro c || hayTesoro mi || hayTesoro md
 
 tieneTesoro :: Cofre -> Bool
+{- Dado un Cofre, indica si existe Tesoro dentro de él.
+Precondición: Tiene que existir al menos un objeto -}
 tieneTesoro (Cofre []) = error "Tiene que existir al menos un objeto"
 tieneTesoro (Cofre objs) = existeTesoro objs
 
