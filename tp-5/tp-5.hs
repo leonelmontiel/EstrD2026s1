@@ -1,3 +1,5 @@
+import Set;
+
 {-1. Cálculo de costos
 Especi car el costo operacional de las siguientes funciones:--}
 -- Solo devuelve el primer elemento de la lista, por eso su costo es constante O(1).
@@ -136,3 +138,33 @@ ordenar :: Ord a => [a]-> [a]
 ordenar [] = []
 ordenar xs = let m = minimo xs
              in m : ordenar (sacar m xs)
+
+-----------------------------------
+
+-- 2. Como usuario del tipo abstracto Set implementar las siguientes funciones:
+losQuePertenecen :: Eq a => [a]-> Set a-> [a]
+-- Dados una lista y un conjunto, describe una lista con todos los elementos que pertenecen
+-- al conjunto.
+-- n = cantidad de elementos de la lista
+-- m = cantidad de elementos del conjunto
+-- belongs -> O(m) / (:) -> O(1)
+-- Por cada n elemento se evalúa si está contenido en el conjunto. Por eso su costo es O(n*m)
+losQuePertenecen [] _ = []
+losQuePertenecen (x:xs) set =
+    if belongs x set
+        then x : losQuePertenecen xs set
+        else losQuePertenecen xs set
+
+sinRepetidos :: Eq a => [a]-> [a]
+-- Quita todos los elementos repetidos de la lista dada utilizando un conjunto
+-- como estructura auxiliar.
+-- n = cantidad de elementos de la lista.
+-- m = cantidad de elementos del conjunto
+-- emptyS -> O(1) / mergearElems -> O(n * m + n^2) / setToList -> O(1)
+-- la operación principal es la delegación a mergearElems, la cual tiene un costo O(n * m + n^2).
+sinRepetidos xs = setToList (mergearElems xs emptyS)
+
+unirTodos :: Eq a => Tree (Set a)-> Set a
+-- Dado un arbol de conjuntos describe un conjunto con la union de todos los conjuntos del arbol.
+unirTodos EmptyT = emptyS
+unirTodos (NodeT set tsi tsd) = unionS set (unionS (unirTodos sti) (unirTodos tsd))
