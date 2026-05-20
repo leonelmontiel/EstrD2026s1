@@ -7,10 +7,10 @@ implementaciones estamos obligados a escribir así los tipos. -}
 -- 2. Set (conjunto)
 -- Un Set es un tipo abstracto de datos que consta de las siguientes operaciones:
 module Set 
-    (emptyS, addS, belongs, sizeS, removeS, unionS, setToList)
+    (Set, emptyS, addS, belongs, sizeS, removeS, unionS, setToList)
 where
 
-data Set a = S [a]
+data Set a = S [a] deriving Show
 -- Invariantes de representación:
 -- - El conjunto no contiene elementos repetidos.
 
@@ -74,8 +74,9 @@ unionS :: Eq a => Set a-> Set a-> Set a
 -- m = cantidad de elementos del conjunto.
 -- S -> O(1) / mergearSets -> O(n * m + n^2)
 -- se delega la operación principal a mergearSets, por ende unionS es O(n * m + n^2).
-unionS (S xs) set = S (mergearSets xs set)
+unionS (S xs) set = mergearElems xs set
 
+-- Auxiliar de unionS
 mergearElems :: Eq a => [a] -> Set a -> Set a
 -- n = cantidad de elementos de la lista.
 -- m = cantidad de elementos del conjunto.

@@ -1,4 +1,7 @@
-import Set;
+import Set2
+import Queue
+
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
 
 {-1. Cálculo de costos
 Especi car el costo operacional de las siguientes funciones:--}
@@ -141,8 +144,19 @@ ordenar xs = let m = minimo xs
 
 -----------------------------------
 
+s0 = emptyS
+s1 = addS 0 s0
+s2 = addAllS [4,5,8] s1
+s3 = addAllS [0,4,9] s2
+
+ts0 = EmptyT
+ts1 = NodeT s0 ts0 ts0
+ts2 = NodeT s1 ts0 ts1
+ts3 = NodeT s2 ts1 ts2
+ts4 = NodeT s3 ts3 ts2
+
 -- 2. Como usuario del tipo abstracto Set implementar las siguientes funciones:
-losQuePertenecen :: Eq a => [a]-> Set a-> [a]
+losQuePertenecen :: Eq a => [a]-> Set2 a-> [a]
 -- Dados una lista y un conjunto, describe una lista con todos los elementos que pertenecen
 -- al conjunto.
 -- n = cantidad de elementos de la lista
@@ -155,16 +169,48 @@ losQuePertenecen (x:xs) set =
         then x : losQuePertenecen xs set
         else losQuePertenecen xs set
 
-sinRepetidos :: Eq a => [a]-> [a]
+sinRepetidos' :: Eq a => [a] -> [a]
 -- Quita todos los elementos repetidos de la lista dada utilizando un conjunto
 -- como estructura auxiliar.
 -- n = cantidad de elementos de la lista.
--- m = cantidad de elementos del conjunto
--- emptyS -> O(1) / mergearElems -> O(n * m + n^2) / setToList -> O(1)
+-- emptyS -> O(1) / quitarRepetidos ->  / setToList -> O(1)
 -- la operación principal es la delegación a mergearElems, la cual tiene un costo O(n * m + n^2).
-sinRepetidos xs = setToList (mergearElems xs emptyS)
+sinRepetidos' xs = setToList (addAllS xs emptyS)
 
-unirTodos :: Eq a => Tree (Set a)-> Set a
--- Dado un arbol de conjuntos describe un conjunto con la union de todos los conjuntos del arbol.
+-- auxiliar de sinRepetidos'
+addAllS :: Eq a => [a] -> Set2 a -> Set2 a
+-- n = cantidad de elementos de la lista.
+-- m = cantidad de elementos del conjunto
+-- addS -> O(m)
+-- por cada n elemento de la lista se hace una llamada a la función lineal addS para agregarlo
+-- en el conjunto. Al mismo tiempo se hace la recursión. Entonces O(n) * O(m) = O(n * m + n^2).
+addAllS [] set = set
+addAllS (x:xs) set = addAllS xs (addS x set)
+
+unirTodos :: Eq a => Tree (Set2 a) -> Set2 a
+-- Siendo N la cantidad de nodos del árbol y M el tamaño máximo de un Set individual.
+-- Caso Base: O(1)
+-- Caso Recursivo: Realiza la recursión sobre todo el árbol (N pasos). 
+-- En los niveles superiores, las llamadas recursivas devuelven conjuntos acumulados 
+-- de tamaño proporcional a (N * M). Unir estos subárboles mediante unionS 
+-- cuesta O((N*M)^2). Este costo domina sobre la unión con el conjunto raíz.
+-- Costo Total: O(N^2 * M^2)
 unirTodos EmptyT = emptyS
-unirTodos (NodeT set tsi tsd) = unionS set (unionS (unirTodos sti) (unirTodos tsd))
+unirTodos (NodeT set tsi tsd) = unionS set (unionS (unirTodos tsi) (unirTodos tsd))
+
+--------------------
+
+-- 3. Como usuario del tipo abstracto Queue implementar las siguientes funciones:
+lengthQ :: Queue a-> Int
+-- Cuenta la cantidad de elementos de la cola.
+lengthQ queue =
+    if isEmptyQ queue
+        then 0
+        else 1 + lengthQ (dequeue queue)
+
+-- queueToList :: Queue a-> [a]
+-- Dada una cola describe la lista con los mismos elementos, donde el orden de la lista es el de la cola.
+-- Nota: chequear que los elementos queden en el orden correcto.
+
+-- unionQ :: Queue a-> Queue a-> Queue a
+-- Inserta todos los elementos de la segunda cola en la primera.
