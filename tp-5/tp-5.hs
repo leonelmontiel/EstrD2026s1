@@ -212,5 +212,16 @@ lengthQ queue =
 -- Dada una cola describe la lista con los mismos elementos, donde el orden de la lista es el de la cola.
 -- Nota: chequear que los elementos queden en el orden correcto.
 
--- unionQ :: Queue a-> Queue a-> Queue a
+unionQ :: Queue a-> Queue a-> Queue a
 -- Inserta todos los elementos de la segunda cola en la primera.
+-- n = cantidad de elementos de q1.
+-- m = cantidad de elementos de q2.
+-- isEmptyQ -> O(1) / enqueue -> v1 O(n) y v2 O(1) / firstQ -> v1 O(1) y v2 O(n) / dequeue -> v1 O(1) y v2 O(n)
+-- En el peor de los casos, por cada m elemento de la q2 se agrega en la q1, tomando y descartando el primer 
+-- elemento cada vez. A su vez se hace la recursión. Por eso para v1 el costo es O(m) y para v2 es O(m^2).
+unionQ q1 q2 =
+	if isEmptyQ q1
+	then q2
+	else if isEmptyQ q2
+		then q1
+		else enqueue (firstQ q1) (unionQ (dequeue q1) q2)
