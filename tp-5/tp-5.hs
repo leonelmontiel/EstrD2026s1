@@ -277,4 +277,3 @@ insertarEnPos n x stk =
 
 insertar :: Int-> a-> Stack a-> Stack a
 insertar n x stk =
-    
