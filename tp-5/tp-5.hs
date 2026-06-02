@@ -173,7 +173,7 @@ sinRepetidos' :: Eq a => [a] -> [a]
 -- Quita todos los elementos repetidos de la lista dada utilizando un conjunto
 -- como estructura auxiliar.
 -- n = cantidad de elementos de la lista.
--- emptyS -> O(1) / quitarRepetidos ->  / setToList -> O(1)
+-- emptyS -> O(1) / addAlls -> O(n * m + n^2)  / setToList -> O(1)
 -- la operación principal es la delegación a mergearElems, la cual tiene un costo O(n * m + n^2).
 sinRepetidos' xs = setToList (addAllS xs emptyS)
 
@@ -200,17 +200,81 @@ unirTodos (NodeT set tsi tsd) = unionS set (unionS (unirTodos tsi) (unirTodos ts
 
 --------------------
 
+q0 = emptyQ
+q1 = enqueue 1 q0
+q2 = enqueue 2 q1
+q3 = enqueue 2 q2
+
 -- 3. Como usuario del tipo abstracto Queue implementar las siguientes funciones:
 lengthQ :: Queue a-> Int
 -- Cuenta la cantidad de elementos de la cola.
+-- n = cantidad de elementos de queue.
+-- isEmptyQ y (+) -> O(1) / dequeue -> O(1) v1 y O(n) v2
+-- Se hace recursión por los n elementos de la queue sumando 1 en cada llamado y haciendo un dequeue.
+-- El costo final para v1 es O(n) y para v2 es O(n^2).
 lengthQ queue =
     if isEmptyQ queue
         then 0
         else 1 + lengthQ (dequeue queue)
 
--- queueToList :: Queue a-> [a]
+queueToList :: Queue a-> [a]
 -- Dada una cola describe la lista con los mismos elementos, donde el orden de la lista es el de la cola.
 -- Nota: chequear que los elementos queden en el orden correcto.
+-- n = cantidad de elementos de la queue.
+-- isEmptyQ, [] y (:) -> O(1) / firstQ -> O(n) / dequeue -> O(1) v1 y O(n) v2
+-- Por cada n elemento de la queue se toma el primero y se lo agrega a la lista con los demás elementos de la queue.
+-- Luego se hace recursión y se quita el elemento ya mencionado.
+-- El costo final para v1 es O(1) y para la v2 es O(n^2).
+queueToList queue =
+    if isEmptyQ queue
+        then []
+        else firstQ queue : queueToList (dequeue queue)
 
--- unionQ :: Queue a-> Queue a-> Queue a
+unionQ :: Queue a -> Queue a -> Queue a
 -- Inserta todos los elementos de la segunda cola en la primera.
+-- n = cantidad de elementos de q1.
+-- m = cantidad de elementos de q2.
+-- Caso Base: O(1)
+-- Caso Recursivo: Se ejecuta m veces (una por cada elemento de q2).
+--
+-- En Queue1 (V1): firstQ y dequeue son O(1). Pero enqueue es lineal respecto a la 
+-- cola que recibe, la cual empieza midiendo n y va creciendo en cada paso hasta n+m.
+-- Costo Total V1: O(m * (n + m)) = O(m * n + m^2)
+--
+-- En Queue2 (V2): enqueue es O(1). Pero firstQ y dequeue son lineales O(m) respecto
+-- al tamaño de q2, el cual va decreciendo paso a paso.
+-- Costo Total V2: O(m * m) = O(m^2)
+unionQ q1 q2 =
+    if isEmptyQ q2
+        then q1
+        else unionQ (enqueue (firstQ q2) q1) (dequeue q2)
+
+---------------------------------
+
+-- 1. Como usuario del tipo abstracto Stack implementar las siguientes funciones:
+
+apilar :: [a]-> Stack a
+-- Dada una lista describe una pila sin alterar el orden de los elementos.
+-- n = cantidad de elementos de la lista.
+-- emptyS -> O(1) / push -> 
+apilar [] = emptyS
+apilar (x:xs) = push x (apilar xs)
+
+desapilar :: Stack a-> [a]
+-- Dada una pila describe una lista sin alterar el orden de los elementos.
+desapilar stk =
+    if isEmptyS stk
+        then []
+        else top stk : desapilar (pop stk)
+
+insertarEnPos :: Int-> a-> Stack a-> Stack a
+-- Dada una posicion válida en la stack y un elemento, ubica dicho elemento en dicha
+-- posición (se desapilan elementos hasta dicha posición y se inserta en ese lugar).
+insertarEnPos n x stk =
+    if (lenS stk) <= n
+        then insertar n x stk
+        else stk
+
+insertar :: Int-> a-> Stack a-> Stack a
+insertar n x stk =
+    
