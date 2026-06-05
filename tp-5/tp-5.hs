@@ -1,5 +1,6 @@
-import Set2
+import Set
 import Queue
+import Stack
 
 data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
 
@@ -156,7 +157,7 @@ ts3 = NodeT s2 ts1 ts2
 ts4 = NodeT s3 ts3 ts2
 
 -- 2. Como usuario del tipo abstracto Set implementar las siguientes funciones:
-losQuePertenecen :: Eq a => [a]-> Set2 a-> [a]
+losQuePertenecen :: Eq a => [a]-> Set a-> [a]
 -- Dados una lista y un conjunto, describe una lista con todos los elementos que pertenecen
 -- al conjunto.
 -- n = cantidad de elementos de la lista
@@ -178,7 +179,7 @@ sinRepetidos' :: Eq a => [a] -> [a]
 sinRepetidos' xs = setToList (addAllS xs emptyS)
 
 -- auxiliar de sinRepetidos'
-addAllS :: Eq a => [a] -> Set2 a -> Set2 a
+addAllS :: Eq a => [a] -> Set a -> Set a
 -- n = cantidad de elementos de la lista.
 -- m = cantidad de elementos del conjunto
 -- addS -> O(m)
@@ -187,7 +188,7 @@ addAllS :: Eq a => [a] -> Set2 a -> Set2 a
 addAllS [] set = set
 addAllS (x:xs) set = addAllS xs (addS x set)
 
-unirTodos :: Eq a => Tree (Set2 a) -> Set2 a
+unirTodos :: Eq a => Tree (Set a) -> Set a
 -- Siendo N la cantidad de nodos del árbol y M el tamaño máximo de un Set individual.
 -- Caso Base: O(1)
 -- Caso Recursivo: Realiza la recursión sobre todo el árbol (N pasos). 
@@ -253,27 +254,57 @@ unionQ q1 q2 =
 
 -- 1. Como usuario del tipo abstracto Stack implementar las siguientes funciones:
 
+stk0 = emptyStk
+stk1 = push 1 stk0
+stk2 = push 2 stk1
+stk3 = push 3 stk2
+
 apilar :: [a]-> Stack a
 -- Dada una lista describe una pila sin alterar el orden de los elementos.
 -- n = cantidad de elementos de la lista.
--- emptyS -> O(1) / push -> 
-apilar [] = emptyS
+-- emptyStk y push -> O(1)
+-- Por cada n elemento se lo agrega en la pila, por eso es O(n).
+apilar [] = emptyStk
 apilar (x:xs) = push x (apilar xs)
 
 desapilar :: Stack a-> [a]
 -- Dada una pila describe una lista sin alterar el orden de los elementos.
+-- stk = el stack.
+-- n = cantidad de elementos de la pila stk.
+-- top, (:) y pop -> O(1)
+-- Por cada n elementos de la pila se guarda en una lista y se desapila del stack.
+-- Por eso su costo es O(n).
 desapilar stk =
-    if isEmptyS stk
+    if isEmptyStk stk
         then []
         else top stk : desapilar (pop stk)
 
 insertarEnPos :: Int-> a-> Stack a-> Stack a
 -- Dada una posicion válida en la stack y un elemento, ubica dicho elemento en dicha
 -- posición (se desapilan elementos hasta dicha posición y se inserta en ese lugar).
+-- stk = el stack.
+-- N = cantidad de elementos de la pila stk.
+-- n = posición a insertar en stk.
+-- x = elemento a intertar en stk.
+-- lenS, (>=), (&&) -> O(1) / insertar -> O(N)
+-- Se delega la operación principal en la función auxiliar insertar.
+-- Costo Total: O(N)
 insertarEnPos n x stk =
-    if (lenS stk) <= n
+    if (lenS stk) >= n && n>=0
         then insertar n x stk
-        else stk
+        else error "La posición no está dentro de la longitud de la pila"
 
 insertar :: Int-> a-> Stack a-> Stack a
+-- Dada una posición en la stack y un elemento, ubica dicho elemento en dicha posición.
+-- stk = el stack.
+-- N = cantidad de elementos de la pila stk.
+-- n = posición a insertar en stk.
+-- x = elemento a intertar en stk.
+-- (==), (-), push, top y pop -> O(1)
+-- Según el nro de posición, en el peor de los casos es la longitud de stk, se itera n veces
+-- para insertar el elemento en la pila, mientras se va desapilando y reconstruyendo.
+-- Por eso el costo es O(N).
 insertar n x stk =
+    if n==0
+        then push x stk
+        else push (top stk) (insertar (n-1) x (pop stk))
